@@ -120,7 +120,7 @@ def run_scan(scan: str, target: str = None, speed: str = "standard",
             return "[!] Sensitive scan butuh target"
         find_sensitive_data(target)
         return f"[OK] Sensitive scan selesai: {target}"
-    if scan in ("blh", "bac", "cred"):
+    if scan in ("blh", "bac", "cred", "apirecon", "params", "ssti", "cors", "xss"):
         if not target:
             return "[!] %s scan butuh target" % scan.upper()
         from scanners import SCANNER_REGISTRY
@@ -131,7 +131,9 @@ def run_scan(scan: str, target: str = None, speed: str = "standard",
             result = runner(target, [])
         except Exception as e:
             return f"[!] {scan} error: {e}"
-        return f"[OK] {scan.upper()} scan selesai: {result.get('links_checked', result.get('links_found', 0))} links (db: matthunder_scans.db, scan_id: {result.get('scan_id')})"
+        keys = ("endpoints", "params", "probes", "findings", "links_checked", "links_found")
+        summary = next((result[k] for k in keys if k in result), 0)
+        return f"[OK] {scan.upper()} scan selesai: {summary} hits (db: matthunder_scans.db, scan_id: {result.get('scan_id')})"
     return f"[!] Scan tidak dikenal: {scan}"
 
 
@@ -163,6 +165,43 @@ def interactive_menu():
             t = _normalize_target(input("Target (example.com): ").strip())
             if t:
                 run_scan("cred", target=t)
+        elif choice == "10":
+            t = _normalize_target(input("Target (example.com): ").strip())
+            if t:
+                run_scan("apirecon", target=t)
+        elif choice == "11":
+            t = _normalize_target(input("Target (example.com): ").strip())
+            if t:
+                run_scan("params", target=t)
+        elif choice == "12":
+            t = _normalize_target(input("Target (example.com): ").strip())
+            if t:
+                run_scan("ssti", target=t)
+        elif choice == "13":
+            t = _normalize_target(input("Target (example.com): ").strip())
+            if t:
+                run_scan("cors", target=t)
+        elif choice == "14":
+            t = _normalize_target(input("Target (example.com): ").strip())
+            if t:
+                run_scan("xss", target=t)
+        elif choice == "15":
+            import bbscope
+            res = bbscope.run_all()
+            print(f"[OK] Scope fetched: {sum(1 for r in res['results'] if r.get('ok'))} platforms ok, {res['chaos'].get('programs', 0)} chaos programs")
+        elif choice == "16":
+            from scoper import Scoper
+            rules_path = input("Rules file (default public-bug-bounty-program/hackerone_bounty.txt): ").strip() or "public-bug-bounty-program/hackerone_bounty.txt"
+            if not os.path.exists(rules_path):
+                print(f"[!] File not found: {rules_path}")
+            else:
+                sc = Scoper()
+                with open(rules_path, "r", encoding="utf-8", errors="ignore") as f:
+                    for line in f:
+                        sc.add_rule(line)
+                target = input("Check target (example: api.example.com): ").strip()
+                if target:
+                    print("IN_SCOPE" if sc.in_scope(target) else "OUT_OF_SCOPE")
         elif choice == "9":
             from matthunder import setup_menu
             setup_menu()
@@ -225,7 +264,7 @@ def main():
         prog="matthunder",
         description="matthunder CLI — recon automation with optional AI parser (BYOK)",
     )
-    p.add_argument("scan", nargs="?", help="light | dark | deep | takeover | sensitive | blh | bac | cred")
+    p.add_argument("scan", nargs="?", help="light | dark | deep | takeover | sensitive | blh | bac | cred | apirecon | params | ssti | cors | xss")
     p.add_argument("target", nargs="?", help="Target domain")
     p.add_argument("speed", nargs="?", default="standard", help="low | standard | fast (or 1/2/3)")
     p.add_argument("-l", "--list", help="Subdomain list file (for takeover mass)")
@@ -298,6 +337,16 @@ def main():
         scan = "bac"
     elif scan in ("cred", "credentials", "config"):
         scan = "cred"
+    elif scan in ("apirecon", "api", "kiterunner"):
+        scan = "apirecon"
+    elif scan in ("params", "parameters", "arjun"):
+        scan = "params"
+    elif scan in ("ssti", "template"):
+        scan = "ssti"
+    elif scan in ("cors",):
+        scan = "cors"
+    elif scan in ("xss", "dalfox", "cross-site-scripting"):
+        scan = "xss"
     else:
         print(f"[!] Scan tidak dikenal: {scan}")
         sys.exit(1)

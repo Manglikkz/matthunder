@@ -146,6 +146,10 @@ call :go_install katana github.com/projectdiscovery/katana/cmd/katana@latest
 call :go_install gau github.com/lc/gau/v2/cmd/gau@latest
 call :go_install waybackurls github.com/tomnomnom/waybackurls@latest
 call :go_install assetfinder github.com/tomnomnom/assetfinder@latest
+call :go_install kiterunner github.com/assetnote/kiterunner/cmd/kr@latest
+call :go_install arjun github.com/s0md3v/Arjun@latest
+call :go_install dalfox github.com/hahwul/dalfox/v2/cmd/dalfox@latest
+call :go_install interactsh-client github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest
 
 echo.
 echo Updating nuclei templates...
@@ -163,6 +167,10 @@ call :check_tool katana
 call :check_tool gau
 call :check_tool waybackurls
 call :check_tool nuclei
+call :check_tool kr
+call :check_tool arjun
+call :check_tool dalfox
+call :check_tool interactsh-client
 
 echo.
 if "%TOOLS_OK%"=="1" (

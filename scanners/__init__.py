@@ -18,4 +18,4 @@ DB_PATH = "matthunder_scans.db"
 
 SCANNER_REGISTRY = {}
 
-from . import blh, bac, cred  # noqa: E402,F401
+from . import blh, bac, cred, apirecon, ssti, cors, xss  # noqa: E402,F401

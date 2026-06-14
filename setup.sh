@@ -96,6 +96,10 @@ install_go_tool katana github.com/projectdiscovery/katana/cmd/katana@latest
 install_go_tool gau github.com/lc/gau/v2/cmd/gau@latest
 install_go_tool waybackurls github.com/tomnomnom/waybackurls@latest
 install_go_tool assetfinder github.com/tomnomnom/assetfinder@latest
+install_go_tool kiterunner github.com/assetnote/kiterunner/cmd/kr@latest
+install_go_tool arjun github.com/s0md3v/Arjun@latest
+install_go_tool dalfox github.com/hahwul/dalfox/v2/cmd/dalfox@latest
+install_go_tool interactsh-client github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest
 
 echo "[*] Updating nuclei templates..."
 "$HOME/go/bin/nuclei" -update-templates || nuclei -update-templates || true
@@ -104,7 +108,7 @@ echo ""
 echo "══════════════════════════════════════════════"
 echo " Verifying tools"
 echo "══════════════════════════════════════════════"
-for t in subfinder assetfinder httpx waybackurls gau katana nuclei; do
+for t in subfinder assetfinder httpx waybackurls gau katana nuclei kr arjun dalfox interactsh-client; do
   if command -v "$t" >/dev/null 2>&1; then
     echo "[OK] $t -> $(command -v "$t")"
   elif [ -x "$HOME/go/bin/$t" ]; then

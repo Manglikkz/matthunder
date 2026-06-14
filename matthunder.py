@@ -248,15 +248,22 @@ def display_menu():
     print("  [7]  Business Asset Collab (3rd-party links)")
     print("  [8]  Credential / Config URLs")
     print("  [9]  Setup Configuration")
+    print("  [10] API Endpoint Recon (kiterunner)")
+    print("  [11] Hidden Parameter Discovery (arjun)")
+    print("  [12] SSTI Probe")
+    print("  [13] CORS Misconfiguration")
+    print("  [14] XSS Scan (dalfox)")
+    print("  [15] Pull Bug Bounty Scope (bbscope)")
+    print("  [16] Check Scope (scoper)")
     print("  [99] Out ")
     print("  [999] Update Tool")
     print("──────────────────────────────────────────────────────────────────────────────")
     while True:
-        choice = input("Choose Feature (0-9, 99, or 999): ").strip()
-        if choice in ["0","1","2","3","4","5","6","7","8","9","99","999"]:
+        choice = input("Choose Feature (0-16, 99, or 999): ").strip()
+        if choice in [str(i) for i in range(0, 17)] + ["99", "999"]:
             return choice
 
-        print("[❌] Invalid choice. Enter number 0-9, 99, or 999")
+        print("[!] Invalid choice. Enter number 0-16, 99, or 999")
 
 def setup_menu():
     while True:

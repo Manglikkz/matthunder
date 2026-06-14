@@ -11,7 +11,7 @@ except ImportError:
 
 
 ALLOWED_SPEEDS = {"low", "standard", "fast"}
-ALLOWED_SCANS = {"lts", "dks", "dps", "tov", "sens", "blh", "bac", "cred"}
+ALLOWED_SCANS = {"lts", "dks", "dps", "tov", "sens", "blh", "bac", "cred", "apirecon", "params", "ssti", "cors", "xss"}
 
 PROVIDERS = {
     "openai": {
@@ -101,6 +101,11 @@ Scan modes (use the code):
 - blh  = Broken Link Hunter (social/profile account check)
 - bac  = Business Asset Collab (3rd-party resource links)
 - cred = Credential/Config URL finder
+- apirecon = API endpoint discovery (kiterunner wrapper)
+- params   = Hidden parameter discovery (arjun wrapper)
+- ssti     = Server-Side Template Injection probe
+- cors     = CORS misconfiguration probe
+- xss      = Reflected/DOM XSS (dalfox wrapper)
 
 Speed: low | standard | fast
 
@@ -210,6 +215,17 @@ def heuristic_parse(query: str) -> Optional[dict]:
         ("cred", "credential"),
         ("cred", "config"),
         ("cred", "sensitive file"),
+        ("apirecon", "api endpoint"),
+        ("apirecon", "kiterunner"),
+        ("apirecon", "api recon"),
+        ("params", "parameter discovery"),
+        ("params", "hidden parameter"),
+        ("ssti", "template injection"),
+        ("ssti", "ssti"),
+        ("cors", "cors"),
+        ("cors", "cross-origin"),
+        ("xss", "xss"),
+        ("xss", "cross site scripting"),
     ]:
         if kw in q:
             scan = code
