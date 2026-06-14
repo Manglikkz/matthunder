@@ -47,7 +47,10 @@ console = Console()
 from config import GITHUB_USER, GITHUB_REPO, BOT_TOKEN, CHAT_ID, KATANA_LIMIT
 
 def resolve_tool(tool_name):
-    """Resolve external recon tools, preferring Go binaries over Python shims on Windows."""
+    """Resolve external recon tools, preferring Go binaries over Python shims on Windows.
+
+    Returns absolute path if found, or None if missing (caller should skip step).
+    """
     candidates = []
     go_bin = os.path.join(os.path.expanduser("~"), "go", "bin")
     candidates.append(os.path.join(go_bin, tool_name + (".exe" if os.name == "nt" else "")))
@@ -57,7 +60,18 @@ def resolve_tool(tool_name):
     for candidate in candidates:
         if candidate and os.path.exists(candidate):
             return candidate
-    return tool_name
+    return None
+
+
+def require_tool(tool_name: str) -> str:
+    """Return absolute path or raise a clear error."""
+    path = resolve_tool(tool_name)
+    if not path:
+        raise FileNotFoundError(
+            f"{tool_name!r} binary not found. Run setup.bat / setup.sh to install Go tools, "
+            f"or place {tool_name} in PATH."
+        )
+    return path
 
 def token_valid(token):
     return token.startswith("bot") or (len(token) > 30 and ":" in token)
@@ -245,7 +259,7 @@ def display_menu():
     print("  [4]  Scan Subdomain Takeover")
     print("  [5]  find Sensitive Data")
     print("  [6]  Broken Link Hunter (social/profile)")
-    print("  [7]  Business Asset Collab (3rd-party links)")
+    print("  [7]  3rd Party Asset Links (Drive/SharePoint/GitHub)")
     print("  [8]  Credential / Config URLs")
     print("  [9]  Setup Configuration")
     print("  [10] API Endpoint Recon (kiterunner)")
@@ -923,6 +937,9 @@ def finding_subdomain(target, subdomain_file):
         os.remove(temp_subdomain_file) 
 
 def running_subfinder(target, subdomain_file):
+    if not resolve_tool("subfinder"):
+        print("[!] subfinder not installed. Run setup.bat / setup.sh to install.")
+        return
     try:
         def run_subfinder():
             return subprocess.Popen([
@@ -941,7 +958,14 @@ def running_subfinder(target, subdomain_file):
             print(e)
             log_error(target, "Subfinder", str(e))
             return
+    except FileNotFoundError as e:
+        print(f"[!] {e}")
+        log_error(target, "Subfinder", str(e))
+        return
 def running_assetfinder(target, subdomain_file):
+    if not resolve_tool("assetfinder"):
+        print("[!] assetfinder not installed. Skipping. Run setup.bat / setup.sh to install.")
+        return
     assetfinder_tmp = tempfile.NamedTemporaryFile(delete=False).name
     try:
         def run_assetfinder():
@@ -962,7 +986,11 @@ def running_assetfinder(target, subdomain_file):
             print("[!] Failed to run Assetfinder")
             print(e)
             log_error(target, "Assetfinder", str(e))
-            return  
+            return
+    except FileNotFoundError as e:
+        print(f"[!] {e}")
+        log_error(target, "Assetfinder", str(e))
+        return
     all_subs = set()
     for path in [subdomain_file, assetfinder_tmp]:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
@@ -984,6 +1012,9 @@ def running_assetfinder(target, subdomain_file):
     print(f"\033[33m[✓]\033[94m Successfully found \033[33m{len(all_subs)}\033[94m subdomains\033[0m")
 
 def active_check(active_file, subdomain_file, url, target):
+    if not resolve_tool("httpx"):
+        print("[!] httpx not installed. Skipping active check. Run setup.bat / setup.sh.")
+        return
     try:
         def run_httpx():
             httpx_args = get_tool_args("httpx") or ["-silent", "-mc", "200", "-t", "300", "-rate-limit", "1000", "-retries", "3", "-timeout", "10"]
@@ -1015,6 +1046,9 @@ def process_crawling(target, active_file, wayback_output, gau_output, katana_out
     combine_crawling_results(wayback_output, gau_output, katana_output, crawled_filtered_output, target)
 
 def crawling_wayback(wayback_output, active_file, target):
+    if not resolve_tool("waybackurls"):
+        print("[!] waybackurls not installed. Skipping. Run setup.bat / setup.sh.")
+        return
     try:
         def run_waybackurls():
             return subprocess.Popen(
@@ -1042,6 +1076,9 @@ def crawling_wayback(wayback_output, active_file, target):
             wayback_urls = [line.strip() for line in f if "http" in line]
 
 def crawling_gau(gau_output, target):
+    if not resolve_tool("gau"):
+        print("[!] gau not installed. Skipping. Run setup.bat / setup.sh.")
+        return
     try:
         gau_args = get_tool_args("gau") or ["--subs", "--threads", "20", "--blacklist", "png,jpg,jpeg,gif,css,svg,woff,woff2,ttf,eot,otf,ico", "--verbose"]
         def run_gau():
@@ -1091,6 +1128,9 @@ def crawling_katana(katana_output, input_file, target):
         else:
             input_for_katana = input_file
 
+    if not resolve_tool("katana"):
+        print("[!] katana not installed. Skipping. Run setup.bat / setup.sh.")
+        return
     try:
         def run_katana():
             katana_args = get_tool_args("katana") or ["-jc", "15", "-d", "4"]
@@ -1281,6 +1321,9 @@ def send_file_telegram(file_path, domain):
 
 
 def nuclei_without_parameter(target, input_file, output_file, user_agent, scan_args):
+    if not resolve_tool("nuclei"):
+        print("[!] nuclei not installed. Skipping. Run setup.bat / setup.sh.")
+        return
     try:
         def nuclei_basic_scan():
             return subprocess.Popen([
@@ -1291,11 +1334,14 @@ def nuclei_without_parameter(target, input_file, output_file, user_agent, scan_a
         print("[!] Failed to run Nuclei (Basic Scan)")
         print(e)
         log_error(target, "Nuclei (Basic Scan)", str(e))
-        return      
-    send_telegram_report(output_file, f"{target} (Nuclei Basic Scan)")      
+        return
+    send_telegram_report(output_file, f"{target} (Nuclei Basic Scan)")
 
 def nuclei_js_exposure(target, input_file, output_file, user_agent, scan_args):
-    try: 
+    if not resolve_tool("nuclei"):
+        print("[!] nuclei not installed. Skipping.")
+        return
+    try:
         def nuclei_js_file():
             return subprocess.Popen([
                 resolve_tool("nuclei"), "-l", input_file, "-s", "low,medium,high,critical", "-nh", "-tags", "js,secrets,exposed-credentials", "-timeout", "5", "-retries", "1", *scan_args, "-o", output_file
@@ -1305,10 +1351,13 @@ def nuclei_js_exposure(target, input_file, output_file, user_agent, scan_args):
             print("[!] Failed to run Nuclei (JS File)")
             print(e)
             log_error(target, "Nuclei (JS File)", str(e))
-            return            
-    send_telegram_report(output_file, f"{target} Nuclei (JS File)")            
+            return
+    send_telegram_report(output_file, f"{target} Nuclei (JS File)")
 
 def nuclei_param_dast(target, input_file, output_file, user_agent, scan_args):
+    if not resolve_tool("nuclei"):
+        print("[!] nuclei not installed. Skipping.")
+        return
     try:
         def nuclei_dast_mode():
             return subprocess.Popen([
@@ -1319,11 +1368,14 @@ def nuclei_param_dast(target, input_file, output_file, user_agent, scan_args):
             print("[!] Failed to run Nuclei (DAST Mode)")
             print(e)
             log_error(target, "Nuclei (DAST Mode)", str(e))
-            return            
-    send_telegram_report(output_file, f"{target} Nuclei (DAST Mode)")            
+            return
+    send_telegram_report(output_file, f"{target} Nuclei (DAST Mode)")
 
 def nuclei_takeover(subdomain_file, output_path_takeover, target):
-    scan_args = get_tool_args("nuclei")  
+    if not resolve_tool("nuclei"):
+        print("[!] nuclei not installed. Skipping takeover scan.")
+        return
+    scan_args = get_tool_args("nuclei")
     cmd = [resolve_tool("nuclei"), "-l", subdomain_file, "-nh", "-tags", "takeover", "-o", output_path_takeover]
     if scan_args:
         cmd.extend(scan_args)
@@ -1345,7 +1397,7 @@ def nuclei_takeover(subdomain_file, output_path_takeover, target):
 def takeover_mass_file(file_path, output_name=None):
     """Perform takeover check on a list of subdomains from a file"""
     if not os.path.isfile(file_path):
-        print(f"[❌] File {file_path} not found.")
+        print(f"[!] File {file_path} not found.")
         return
 
     if not output_name:
@@ -1354,11 +1406,14 @@ def takeover_mass_file(file_path, output_name=None):
     output_path = os.path.join(OUTPUT_FOLDER_TAKEOVER, f"TO_{output_name}.txt")
 
     speed = get_speed()
-    print(f"\033[94m[ℹ️] Scan speed -> {speed}\033[0m")
+    print(f"[i] Scan speed -> {speed}")
 
-    print(f"\n\033[94m[▶] Starting process for file {file_path} (TAKEOVER MASSAL)\033[0m")
+    print(f"\n[i] Starting process for file {file_path} (TAKEOVER MASS)")
 
-    scan_args = get_tool_args("nuclei")  
+    if not resolve_tool("nuclei"):
+        print("[!] nuclei not installed. Skipping takeover mass scan.")
+        return
+    scan_args = get_tool_args("nuclei")
     cmd = [resolve_tool("nuclei"), "-l", file_path, "-nh", "-tags", "takeover", "-o", output_path]
     if scan_args:
         cmd.extend(scan_args)
@@ -1378,13 +1433,16 @@ def takeover_single(target):
     output_path = os.path.join(OUTPUT_FOLDER_TAKEOVER, f"TOW_{target}.txt")
 
     speed = get_speed()
-    print(f"\033[94m[ℹ️] Scan speed -> {speed}\033[0m")
+    print(f"[i] Scan speed -> {speed}")
 
-    print(f"\n\033[94m[▶] Starting process for {target} (TAKEOVER)\033[0m")
+    print(f"\n[i] Starting process for {target} (TAKEOVER)")
 
     finding_subdomain(target, input_file)
 
-    scan_args = get_tool_args("nuclei")  
+    if not resolve_tool("nuclei"):
+        print("[!] nuclei not installed. Skipping takeover single scan.")
+        return
+    scan_args = get_tool_args("nuclei")
     cmd = [resolve_tool("nuclei"), "-l", input_file, "-nh", "-tags", "takeover", "-o", output_path]
     if scan_args:
         cmd.extend(scan_args)
@@ -1435,7 +1493,10 @@ def check_takeover(mode):
         print(f"\n[▶] Starting process for {target} (TAKEOVER WILDCARD)")
         finding_subdomain(target, input_file)
         label = f"Takeover Wildcard ({target})"
-    scan_args = get_tool_args("nuclei")  
+    if not resolve_tool("nuclei"):
+        print("[!] nuclei not installed. Skipping takeover check.")
+        return
+    scan_args = get_tool_args("nuclei")
     cmd = [resolve_tool("nuclei"), "-l", input_file, "-nh", "-tags", "takeover", "-o", output_path]
     if scan_args:
         cmd.extend(scan_args)

@@ -32,7 +32,7 @@
   - `takeover` — Nuclei takeover checks (single target or mass file).
   - `sensitive` — sensitive URL discovery.
   - `blh` — **Broken Link Hunter**: discover social/profile links and classify account status (alive / broken / redirect / blocked / timeout / unknown) across 10 platforms.
-  - `bac` — **Business Asset Collab**: discover 3rd-party resource links (Google Drive, SharePoint, GitHub, Notion, Trello, Figma, Dropbox, Atlassian).
+  - `tpa` / `thirdparty` — **3rd Party Asset Links**: discover third-party resource links (Google Drive, SharePoint, GitHub, Notion, Trello, Figma, Dropbox, Atlassian). (Note: NOT "Broken Access Control" — that OWASP term is intentionally avoided here.)
   - `cred` — **Credential/Config URL finder**: match sensitive paths across 10 categories (config, docker, database dumps, archives, logs, source control, API docs, PHP info, IDE meta, CI/CD).
 - **AI query parser (BYOK)** — natural language → CLI args, supports OpenAI, Anthropic, Gemini, OpenRouter. Offline heuristic fallback when no API key set.
 - **Optional Telegram bot** — opt-in via `--telegram`. Owner-gated, IP/private target validation, real-time status cards, ZIP report delivery.
@@ -143,7 +143,7 @@ python matthunder_cli.py takeover -t example.com
 
 # Inline scanners (no Go tools required)
 python matthunder_cli.py blh <target>
-python matthunder_cli.py bac <target>
+python matthunder_cli.py tpa <target>     # 3rd Party Asset Links
 python matthunder_cli.py cred <target>
 
 # Common flags
@@ -221,11 +221,13 @@ Three new inline scanners ported from [BLH-Hunter](https://github.com/your-org/b
 - Reserved-path guards (skips `/login`, `/explore`, etc.).
 - HTTP probes each candidate → classifies as `alive` / `broken` / `redirect` / `blocked` / `timeout` / `unknown`.
 
-### BAC — Business Asset Collab
+### TPA — 3rd Party Asset Links (formerly "BAC")
 
 - Crawls in-scope pages.
 - Matches outbound links to 3rd-party service domains.
 - Stores discovered URLs for manual verification (does not probe target services).
+
+> **Note on naming:** Originally called "BAC" (Business Asset Collab) when ported from BLH-Hunter, but renamed to **TPA / 3rd Party Asset Links** to avoid collision with the OWASP **Broken Access Control** term. Both `tpa` and `thirdparty` work as CLI flags.
 
 ### Cred — Credential / Config URL Finder
 

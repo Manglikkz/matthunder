@@ -48,7 +48,9 @@ SCAN_MAP = {
     "takeover": ("tov", None, "list_or_target"),
     "sensitive": ("sens", find_sensitive_data, "target"),
     "blh": ("blh", None, "target"),
-    "bac": ("bac", None, "target"),
+    "bac": ("tpa", None, "target"),
+    "thirdparty": ("tpa", None, "target"),
+    "tpa": ("tpa", None, "target"),
     "cred": ("cred", None, "target"),
 }
 
@@ -160,7 +162,7 @@ def interactive_menu():
         elif choice == "7":
             t = _normalize_target(input("Target (example.com): ").strip())
             if t:
-                run_scan("bac", target=t)
+                run_scan("tpa", target=t)
         elif choice == "8":
             t = _normalize_target(input("Target (example.com): ").strip())
             if t:
@@ -264,7 +266,7 @@ def main():
         prog="matthunder",
         description="matthunder CLI — recon automation with optional AI parser (BYOK)",
     )
-    p.add_argument("scan", nargs="?", help="light | dark | deep | takeover | sensitive | blh | bac | cred | apirecon | params | ssti | cors | xss")
+    p.add_argument("scan", nargs="?", help="light | dark | deep | takeover | sensitive | blh | tpa | cred | apirecon | params | ssti | cors | xss")
     p.add_argument("target", nargs="?", help="Target domain")
     p.add_argument("speed", nargs="?", default="standard", help="low | standard | fast (or 1/2/3)")
     p.add_argument("-l", "--list", help="Subdomain list file (for takeover mass)")
@@ -333,8 +335,8 @@ def main():
         scan = "sens"
     elif scan in ("blh", "broken"):
         scan = "blh"
-    elif scan in ("bac", "collab"):
-        scan = "bac"
+    elif scan in ("tpa", "thirdparty", "collab", "drive", "sharepoint", "3rd-party"):
+        scan = "tpa"
     elif scan in ("cred", "credentials", "config"):
         scan = "cred"
     elif scan in ("apirecon", "api", "kiterunner"):

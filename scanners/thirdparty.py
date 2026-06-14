@@ -1,5 +1,6 @@
 """
-BAC scanner — Business Asset Collab.
+3rd-party asset links scanner (renamed from BAC to avoid conflict with the
+OWASP "Broken Access Control" term).
 
 Discovers publicly linked third-party resources (Google Drive, SharePoint,
 GitHub, Notion, Trello, Figma, Dropbox) referenced from in-scope pages.
@@ -112,9 +113,10 @@ def run(domain: str, services: list[str], max_pages: int = 30) -> dict:
 
     con.commit()
     finish_scan(con, scan_id, status="completed", total_sources=len(pages), total_links=len(unique))
-    log(con, scan_id, f"BAC scan completed - {len(unique)} resource links recorded")
+    log(con, scan_id, f"3rd-party asset scan completed - {len(unique)} resource links recorded")
     con.close()
-    return {"scan_id": scan_id, "scanner": "bac", "domain": domain, "pages": len(pages), "links_found": len(unique)}
+    return {"scan_id": scan_id, "scanner": "thirdparty", "domain": domain, "pages": len(pages), "links_found": len(unique)}
 
 
-SCANNER_REGISTRY["bac"] = run
+SCANNER_REGISTRY["thirdparty"] = run
+SCANNER_REGISTRY["tpa"] = run  # short alias

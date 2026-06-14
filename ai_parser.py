@@ -11,7 +11,7 @@ except ImportError:
 
 
 ALLOWED_SPEEDS = {"low", "standard", "fast"}
-ALLOWED_SCANS = {"lts", "dks", "dps", "tov", "sens", "blh", "bac", "cred", "apirecon", "params", "ssti", "cors", "xss"}
+ALLOWED_SCANS = {"lts", "dks", "dps", "tov", "sens", "blh", "thirdparty", "tpa", "cred", "apirecon", "params", "ssti", "cors", "xss"}
 
 PROVIDERS = {
     "openai": {
@@ -99,7 +99,7 @@ Scan modes (use the code):
 - tov  = Subdomain Takeover (requires -list)
 - sens = Sensitive Data
 - blh  = Broken Link Hunter (social/profile account check)
-- bac  = Business Asset Collab (3rd-party resource links)
+- tpa / thirdparty = 3rd Party Asset Links (Drive/SharePoint/GitHub/etc)
 - cred = Credential/Config URL finder
 - apirecon = API endpoint discovery (kiterunner wrapper)
 - params   = Hidden parameter discovery (arjun wrapper)
@@ -209,9 +209,11 @@ def heuristic_parse(query: str) -> Optional[dict]:
         ("sens", "sensitive"),
         ("blh", "broken link"),
         ("blh", "social"),
-        ("bac", "collab"),
-        ("bac", "sharepoint"),
-        ("bac", "google drive"),
+        ("tpa", "collab"),
+        ("tpa", "sharepoint"),
+        ("tpa", "google drive"),
+        ("tpa", "third party"),
+        ("tpa", "3rd party"),
         ("cred", "credential"),
         ("cred", "config"),
         ("cred", "sensitive file"),
