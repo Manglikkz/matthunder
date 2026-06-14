@@ -4,8 +4,7 @@ set -e
 cd "$(dirname "$0")"
 
 echo "══════════════════════════════════════════════"
-echo " OUSHH Linux/macOS Setup"
-echo " (renamed to matthunder — see README)"
+echo " matthunder Linux/macOS Setup"
 echo "══════════════════════════════════════════════"
 
 if [ ! -f config.py ] && [ -f config.example.py ]; then

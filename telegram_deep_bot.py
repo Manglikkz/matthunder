@@ -122,7 +122,7 @@ def detect_scan_step_from_line(line: str):
     if not raw:
         return None, None, None
 
-    # Use Oushh's own printed stage/result lines as the visible status.
+    # Use matthunder's own printed stage/result lines as the visible status.
     stage_markers = [
         "starting process", "resuming process", "scan speed", "starting crawling",
         "starting active validation and crawling", "starting nuclei scan", "starting nuclei scans",
@@ -256,7 +256,7 @@ def build_stage_checklist(max_items: int = 17):
     for idx, (key, label, _required) in enumerate(STAGE_FLOW[:max_items]):
         real_line = analysis["stage_lines"].get(key)
         if key in completed:
-            # Completed lines are shown exactly as Oushh printed them.
+            # Completed lines are shown exactly as matthunder printed them.
             lines.append(f"✅ {real_line or label}")
         elif idx == current_index:
             lines.append(f"🔄 Waiting for: {label}")
@@ -274,7 +274,7 @@ def update_scan_step_from_log_tail(max_lines: int = 80):
     active_scan["progress_pct"] = pct
     if analysis.get("last_stage_line"):
         active_scan["step"] = analysis["last_stage_line"]
-        active_scan["step_detail"] = "Mengikuti urutan tahapan asli Oushh."
+        active_scan["step_detail"] = "Mengikuti urutan tahapan asli matthunder."
         active_scan["last_log_line"] = analysis["last_stage_line"]
         return
 
@@ -289,7 +289,7 @@ def update_scan_step_from_log_tail(max_lines: int = 80):
         step, pct2, raw = detect_scan_step_from_line(line)
         if step:
             active_scan["step"] = step
-            active_scan["step_detail"] = "Mengikuti tahapan/output asli dari Oushh."
+            active_scan["step_detail"] = "Mengikuti tahapan/output asli dari matthunder."
             active_scan["progress_pct"] = pct2
             active_scan["last_log_line"] = raw
             return
@@ -455,7 +455,7 @@ def clean_confirm_keyboard():
 
 async def send_main_menu(message_obj):
     await message_obj.reply_text(
-        "🧬 Oushh Deep Bot\n\n"
+        "matthunder Deep Bot\n\n"
         "Bot private untuk menjalankan Deep Scan dari Telegram.\n\n"
         "Pilih tombol di bawah, atau langsung kirim:\n"
         "/deep example.com\n"
@@ -530,7 +530,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.message.reply_text(build_status_text(), reply_markup=status_keyboard())
     elif data == "menu_home":
         await query.message.reply_text(
-            "🧬 Oushh Deep Bot\n\nPilih menu:",
+            "matthunder Deep Bot\n\nPilih menu:",
             reply_markup=main_menu_keyboard()
         )
     elif data == "menu_report":
@@ -549,7 +549,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "Ini akan menghapus file output/log/report lama agar laptop tidak berat.\n\n"
                 "Yang dibersihkan:\n"
                 "• bot_logs / bot_reports lama\n"
-                "• output Oushh lama dari folder hasil scan\n"
+                "• output matthunder lama dari folder hasil scan\n"
                 "• __pycache__\n\n"
                 "Pilih mode cleaning:\n"
                 "• Clean Old: hapus file lebih lama dari 7 hari\n"
@@ -686,7 +686,7 @@ async def start_deep_scan(message_obj, context: ContextTypes.DEFAULT_TYPE, targe
         )
     except Exception as e:
         log_file.close()
-        return await message_obj.reply_text(f"❌ Gagal menjalankan Oushh: {e}")
+        return await message_obj.reply_text(f"❌ Gagal menjalankan matthunder: {e}")
 
     active_scan.update({
         "process": proc,
@@ -694,8 +694,8 @@ async def start_deep_scan(message_obj, context: ContextTypes.DEFAULT_TYPE, targe
         "started_at": time.time(),
         "log_path": str(log_path),
         "message_id": message_obj.message_id,
-        "step": "[▶] Starting Oushh Deep Scan",
-        "step_detail": "Menunggu output tahap pertama dari Oushh.",
+        "step": "[▶] Starting matthunder Deep Scan",
+        "step_detail": "Menunggu output tahap pertama dari matthunder.",
         "progress_pct": 5,
         "last_log_line": "",
     })
@@ -814,7 +814,7 @@ def main():
     app.add_handler(CommandHandler("report", report))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_plain_target))
     app.add_error_handler(error_handler)
-    print("Oushh Deep Telegram Bot running...")
+    print("matthunder Deep Telegram Bot running...")
     app.run_polling(
         drop_pending_updates=True,
         poll_interval=2,

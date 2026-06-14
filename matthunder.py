@@ -13,7 +13,7 @@ import threading
 import signal
 
 # termios/tty/select are Unix-only and not needed for CLI flag mode.
-# Keep Oushh runnable on Windows for Telegram bot subprocess usage.
+# Keep matthunder runnable on Windows for Telegram bot subprocess usage.
 try:
     import select
 except ImportError:
@@ -2006,7 +2006,7 @@ def feature_update_tool():
     except Exception as e:
         print(f"[❌] Failed to update: {e}")
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='OUSHH - Automation Recon Tool')
+    parser = argparse.ArgumentParser(description='matthunder - Automation Recon Tool')
     parser.add_argument('--lightscan', '-lts', action='store_true', help='Run Light Scan')
     parser.add_argument('--darkscan', '-dks', action='store_true', help='Run Dark Scan')
     parser.add_argument('--deepscan', '-dps', action='store_true', help='Run Deep Scan')
@@ -2094,7 +2094,7 @@ if __name__ == "__main__":
             elif scan_type == "0":
                 feature_info()
             elif scan_type == "99":
-                print("[✔] Exiting OUSHH. Thank you!")
+                print("[OK] Exiting matthunder. Bye.")
                 break
             elif scan_type == "999":
                 feature_update_tool()
