@@ -18,28 +18,28 @@ from telegram.error import TelegramError, TimedOut
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
 
 ROOT = Path(__file__).resolve().parent
-OUSHH = ROOT / "oushh.py"
+MATTHUNDER = ROOT / "matthunder.py"
 REPORT_DIR = ROOT / "bot_reports"
 LOG_DIR = ROOT / "bot_logs"
 REPORT_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 
-DEFAULT_SPEED = os.getenv("OUSHH_DEEP_SPEED", "standard").lower()
-PYTHON_BIN = os.getenv("OUSHH_PYTHON", sys.executable or "python")
+DEFAULT_SPEED = os.getenv("MATTHUNDER_DEEP_SPEED", "standard").lower()
+PYTHON_BIN = os.getenv("MATTHUNDER_PYTHON", sys.executable or "python")
 
 try:
     import config as lazy_config
 except Exception:
     lazy_config = None
 
-OWNER_ID = int(os.getenv("OUSHH_OWNER_ID") or getattr(lazy_config, "OWNER_ID", getattr(lazy_config, "CHAT_ID", "0")) or "0")
-BOT_TOKEN = (os.getenv("OUSHH_BOT_TOKEN") or getattr(lazy_config, "BOT_TOKEN", "") or "").strip()
+OWNER_ID = int(os.getenv("MATTHUNDER_OWNER_ID") or getattr(lazy_config, "OWNER_ID", getattr(lazy_config, "CHAT_ID", "0")) or "0")
+BOT_TOKEN = (os.getenv("MATTHUNDER_BOT_TOKEN") or getattr(lazy_config, "BOT_TOKEN", "") or "").strip()
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
-logger = logging.getLogger("oushh_deep_bot")
+logger = logging.getLogger("matthunder_deep_bot")
 
 active_scan = {
     "process": None,
@@ -186,7 +186,7 @@ def classify_progress_from_tool_line(text: str) -> int:
     return 10
 
 
-OUSHH_STAGE_FLOW = [
+STAGE_FLOW = [
     ("start", "Starting process", ["starting process"]),
     ("subfinder", "Subfinder", ["subfinder found"]),
     ("assetfinder", "Assetfinder", ["assetfinder found"]),
@@ -231,20 +231,20 @@ def analyze_stage_flow_from_log():
         text = raw.lower()
         if not raw:
             continue
-        for idx, (key, _label, required) in enumerate(OUSHH_STAGE_FLOW):
+        for idx, (key, _label, required) in enumerate(STAGE_FLOW):
             if key not in result["completed"] and line_matches_stage(text, required):
                 result["completed"].add(key)
                 result["stage_lines"][key] = raw[:700]
                 result["last_stage_line"] = raw[:700]
-                result["current_index"] = min(idx + 1, len(OUSHH_STAGE_FLOW) - 1)
+                result["current_index"] = min(idx + 1, len(STAGE_FLOW) - 1)
 
     # Do not skip stages visually: current is the first stage not yet completed.
-    for idx, (key, _label, _required) in enumerate(OUSHH_STAGE_FLOW):
+    for idx, (key, _label, _required) in enumerate(STAGE_FLOW):
         if key not in result["completed"]:
             result["current_index"] = idx
             break
     else:
-        result["current_index"] = len(OUSHH_STAGE_FLOW)
+        result["current_index"] = len(STAGE_FLOW)
     return result
 
 
@@ -253,7 +253,7 @@ def build_stage_checklist(max_items: int = 17):
     completed = analysis["completed"]
     current_index = analysis["current_index"]
     lines = []
-    for idx, (key, label, _required) in enumerate(OUSHH_STAGE_FLOW[:max_items]):
+    for idx, (key, label, _required) in enumerate(STAGE_FLOW[:max_items]):
         real_line = analysis["stage_lines"].get(key)
         if key in completed:
             # Completed lines are shown exactly as Oushh printed them.
@@ -265,7 +265,7 @@ def build_stage_checklist(max_items: int = 17):
     if analysis["last_stage_line"]:
         pct = classify_progress_from_tool_line(analysis["last_stage_line"].lower())
     else:
-        pct = int((len(completed) / max(1, len(OUSHH_STAGE_FLOW))) * 100)
+        pct = int((len(completed) / max(1, len(STAGE_FLOW))) * 100)
     return lines, pct, analysis
 
 
@@ -607,7 +607,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🧭 Help\n\n"
         "Deep Scan menjalankan:\n"
-        "python oushh.py -dps -t TARGET -s SPEED -ar\n\n"
+        "python matthunder.py -dps -t TARGET -s SPEED -ar\n\n"
         "Speed tersedia:\n"
         "low / standard / fast\n\n"
         "Contoh:\n"
@@ -660,7 +660,7 @@ async def start_deep_scan(message_obj, context: ContextTypes.DEFAULT_TYPE, targe
 
     pending_target.pop(OWNER_ID, None)
     log_path = LOG_DIR / f"deep_{target}_{time.strftime('%Y%m%d_%H%M%S')}.log"
-    cmd = [PYTHON_BIN, str(OUSHH), "-dps", "-t", target, "-s", speed, "-ar"]
+    cmd = [PYTHON_BIN, str(MATTHUNDER), "-dps", "-t", target, "-s", speed, "-ar"]
 
     await message_obj.reply_text(
         "🚀 Deep Scan started\n\n"
@@ -675,7 +675,7 @@ async def start_deep_scan(message_obj, context: ContextTypes.DEFAULT_TYPE, targe
     env = os.environ.copy()
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
-    env["OUSHH_BOT_WRAPPER"] = "1"
+    env["MATTHUNDER_BOT_WRAPPER"] = "1"
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -792,7 +792,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 def main():
     global app
     if (not BOT_TOKEN) or BOT_TOKEN in {"YOUR_BOT_TOKEN", "YOUR_BOT_TOKEN_FROM_BOTFATHER", "TOKEN_BOTFATHER_KAMU"}:
-        raise SystemExit(f"Isi BOT_TOKEN di {ROOT / 'config.py'} atau env OUSHH_BOT_TOKEN dulu.")
+        raise SystemExit(f"Isi BOT_TOKEN di {ROOT / 'config.py'} atau env MATTHUNDER_BOT_TOKEN dulu.")
     # Disable JobQueue/APScheduler because this bot does not use scheduled jobs.
     # This avoids APScheduler timezone errors on some Windows/Python environments.
     app = (

@@ -1,11 +1,11 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-title Oushh Windows Setup
+title matthunder Windows Setup
 
 echo.
 echo ======================================================
-echo   Oushh Windows Setup
+echo   matthunder Windows Setup
 echo ======================================================
 echo.
 
@@ -49,7 +49,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [3/7] Installing Oushh Python requirements...
+echo [3/7] Installing matthunder Python requirements...
 if exist requirements.txt (
     %PY% -m pip install -r requirements.txt
     if errorlevel 1 (

@@ -2,12 +2,12 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "Starting matthunder Telegram Deep Bot..."
+echo "Starting matthunder CLI..."
 
 if [ ! -f config.py ] && [ -f config.example.py ]; then
   cp config.example.py config.py
   echo "[OK] config.py dibuat dari config.example.py"
-  echo "Edit config.py isi BOT_TOKEN dan CHAT_ID, lalu jalankan script ini lagi."
+  echo "Edit config.py isi BOT_TOKEN, lalu jalankan script ini lagi."
   exit 0
 fi
 
@@ -20,4 +20,4 @@ else
   fi
 fi
 
-exec "$PYTHON_BIN" telegram_deep_bot.py
+exec "$PYTHON_BIN" matthunder_cli.py "$@"

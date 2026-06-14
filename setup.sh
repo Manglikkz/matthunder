@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 
 echo "══════════════════════════════════════════════"
 echo " OUSHH Linux/macOS Setup"
+echo " (renamed to matthunder — see README)"
 echo "══════════════════════════════════════════════"
 
 if [ ! -f config.py ] && [ -f config.example.py ]; then
@@ -25,7 +26,7 @@ fi
 echo "[*] System Python: $($PYTHON_BIN --version)"
 
 # Kali/Debian modern memakai PEP668 (externally-managed-environment).
-# Agar tidak merusak system Python, Oushh selalu memakai virtualenv lokal.
+# Agar tidak merusak system Python, matthunder selalu memakai virtualenv lokal.
 if [ ! -d ".venv" ]; then
   echo "[*] Membuat virtual environment lokal: .venv"
   if ! "$PYTHON_BIN" -m venv .venv; then

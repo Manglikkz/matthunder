@@ -228,11 +228,14 @@ def print_logo():
 ╚██████╔╝╚██████╔╝███████║██║  ██║██║  ██║██║  ██║
  ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
 """
-    print(red + logo + reset)
-    print(f"                                OUSHH v{version_status}")
-    print("Author     : Oushh                Contact     : @ouashxy")
-    print("Instagram  : @ouashxy           GitHub      : 2124600005-musa")
-    print("LinkedIn   : musa-hamonangan-lubis-a719b9282")
+    try:
+        print(red + logo + reset)
+        print(f"                                matthunder v{version_status}")
+        print("Author     : hmad28                 Contact     : @hmad28")
+        print("GitHub     : hmad28/matthunder")
+    except UnicodeEncodeError:
+        print(red + "[ matthunder ]" + reset)
+        print(f"version: {version_status}")
 def display_menu():
     print("\n    Choose Feature:")
     print("  [0]  Feature Information")
@@ -1197,7 +1200,7 @@ def process_crawling(target, active_file, wayback_output, gau_output, katana_out
     combine_crawling_results(wayback_output, gau_output, katana_output, crawled_filtered_output, target)
 
 def send_telegram_report(file_path, domain, max_len=4000):
-    if os.getenv("OUSHH_BOT_WRAPPER") == "1":
+    if os.getenv("MATTHUNDER_BOT_WRAPPER") == "1":
         print(f"[ℹ️] Telegram report sending skipped by bot wrapper for {domain}.")
         return
     importlib.reload(config)
@@ -1239,7 +1242,7 @@ def send_telegram_report(file_path, domain, max_len=4000):
 
 def send_file_telegram(file_path, domain):
     """Send scan result file to Telegram (sendDocument)."""
-    if os.getenv("OUSHH_BOT_WRAPPER") == "1":
+    if os.getenv("MATTHUNDER_BOT_WRAPPER") == "1":
         print(f"[ℹ️] Telegram file sending skipped by bot wrapper for {domain}.")
         return
     importlib.reload(config)
