@@ -273,9 +273,9 @@ def print_logo():
     red = "\033[91m"
     reset = "\033[0m"
     logo = r"""
- ╔╦╗╔═╗╦╔╦╗╔╦╗╦ ╦╔═╗╔═╗╔╦╗
-  ║ ║╣ ║ ║  ║ ╠═╣║╣ ╠═╣ ║ 
-  ╩ ╚═╝╩ ╩  ╩ ╩ ╩╚═╝╩ ╩ ╩ """
+ ╔╦╗╔╦╗╔╦╗╦╔╦╗╦  ╦╔═╗╔═╗╦╦╔╗╔═╗╔═╗
+ ║║║║║║║║║║║║║║  ╚╦╝║ ║║║╠╩╗║╣ ╠═╝
+ ╩╩╩╩╩╩╩╩╩╩╩╩╩╩  ╩ ╚═╝╩╩╝╚═╝╚═╝╩"""
     try:
         print(red + logo + reset)
         print(f"    matthunder v{version_status}  |  Author: hmad28  |  GitHub: hmad28/matthunder")
