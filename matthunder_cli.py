@@ -201,6 +201,8 @@ def show_status_banner():
 # ─── Display menu ────────────────────────────────────────────────────────────
 
 FEATURES = {
+    # Pipeline ★
+    "0":  ("pipeline",    "FULL PIPELINE ★",      "6-phase auto: recon→hunt→validate→report (ALL 5 PROVIDERS)"),
     # Recon
     "1":  ("light",       "Light Scan",           "Subfinder + Httpx + Nuclei (fast recon)"),
     "2":  ("dark",        "Dark Scan",            "Subfinder + Assetfinder + Katana + Nuclei"),
@@ -226,10 +228,14 @@ FEATURES = {
     "31": ("waf",         "WAF Detection",        "Identify Web Application Firewall (wafw00f)"),
     "32": ("jsanalysis",  "JS Analysis",          "Extract secrets/endpoints from JavaScript"),
     "33": ("fuzzer",      "Dir/Path Fuzzer",      "Content discovery (ffuf/feroxbuster/gobuster)"),
+    "34": ("tech",        "Tech Fingerprint",     "Detect stack + auto stack-specific hunting"),
+    "35": ("rank",        "Attack Surface Rank",  "Rank subdomains by attack value (admin>api>staging)"),
+    "36": ("gf",          "GF Patterns",          "Filter URLs by vuln type (sqli/xss/ssrf/lfi/idor)"),
     # Utility
     "40": ("bbscope",     "Bug Bounty Scope",     "Pull scope from HackerOne/Bugcrowd/Intigriti"),
     "41": ("scoper",      "Check Scope",          "Check if a target is in-scope for a program"),
     "42": ("fullchain",   "Full Scanner Chain",   "Run all scanners on each active subdomain"),
+    "43": ("gate",        "7-Question Gate",      "Validate finding before submission (kill weak bugs)"),
 }
 
 
@@ -238,8 +244,13 @@ def display_menu():
     print(f"\n  {_c(C.BD, 'MAIN MENU')}")
     print()
 
+    # Pipeline ★
+    tag, name, desc = FEATURES["0"]
+    print(f"  {_c(C.R, '── PIPELINE (recommended) ───────────────────────────')}")
+    print(f"  [{_c(C.BD, '0')}]  {name:<20} {_c(C.D, desc)}")
+
     # Recon group
-    print(f"  {_c(C.CY, '── Recon ─────────────────────────────────────────────')}")
+    print(f"\n  {_c(C.CY, '── Recon ─────────────────────────────────────────────')}")
     for key in ("1", "2", "3"):
         tag, name, desc = FEATURES[key]
         marker = " ★" if key == "3" else ""
@@ -259,13 +270,13 @@ def display_menu():
 
     # Infra & Analysis
     print(f"\n  {_c(C.CY, '── Infrastructure & Analysis ─────────────────────────')}")
-    for key in ("30", "31", "32", "33"):
+    for key in ("30", "31", "32", "33", "34", "35", "36"):
         tag, name, desc = FEATURES[key]
         print(f"  [{_c(C.BD, key)}]  {name:<20} {_c(C.D, desc)}")
 
     # Utility group
     print(f"\n  {_c(C.CY, '── Utility ──────────────────────────────────────────')}")
-    for key in ("40", "41", "42"):
+    for key in ("40", "41", "42", "43"):
         tag, name, desc = FEATURES[key]
         print(f"  [{_c(C.BD, key)}]  {name:<20} {_c(C.D, desc)}")
 
@@ -353,7 +364,9 @@ def run_scan(scan: str, target: str = None, speed: str = "standard",
         return f"  {_c(C.G, '[OK]')} Sensitive scan selesai: {target}"
 
     if scan in ("blh", "bac", "cred", "apirecon", "params", "ssti", "cors", "xss",
-                "sqli", "lfi", "crlf", "openredirect", "portscan", "waf", "jsanalysis", "fuzzer"):
+                "sqli", "lfi", "crlf", "openredirect", "portscan", "waf", "jsanalysis", "fuzzer",
+                "pipeline", "techfingerprint", "tech", "gfpatterns", "gf", "gate", "validate",
+                "attackrank", "rank"):
         if not target:
             return f"[!] {scan.upper()} scan butuh target"
         from scanners import SCANNER_REGISTRY
@@ -370,6 +383,11 @@ def run_scan(scan: str, target: str = None, speed: str = "standard",
             "crlf": "CRLF Injection", "openredirect": "Open Redirect",
             "portscan": "Port Scan", "waf": "WAF Detection",
             "jsanalysis": "JS Analysis", "fuzzer": "Dir/Path Fuzzer",
+            "pipeline": "Full Pipeline", "techfingerprint": "Tech Fingerprint",
+            "tech": "Tech Fingerprint", "gfpatterns": "GF Patterns",
+            "gf": "GF Patterns", "gate": "7-Question Gate",
+            "validate": "7-Question Gate", "attackrank": "Attack Surface Rank",
+            "rank": "Attack Surface Rank",
         }
         label = scan_labels.get(scan, scan.upper())
         print(f"\n  {_c(C.G, '[*]')} Starting {_c(C.BD, label)} on {_c(C.BD, target)}")
@@ -402,8 +420,19 @@ def interactive_menu():
     while True:
         choice = display_menu()
 
+        # ── Pipeline ★ ─────────────────────────────────────────────────────
+        if choice == "0":
+            t = _ask_target()
+            if t:
+                spd = _ask_speed()
+                try:
+                    from scanners.pipeline import run as pipeline_run
+                    pipeline_run(t, speed=spd)
+                except Exception as e:
+                    print(f"  {_c(C.R, '[!]')} Pipeline error: {e}")
+
         # ── Recon ────────────────────────────────────────────────────────────
-        if choice == "1":
+        elif choice == "1":
             _run_light_scan()
         elif choice == "2":
             _run_scan_with_speed("dark")
@@ -471,6 +500,15 @@ def interactive_menu():
         elif choice == "33":
             t = _ask_target()
             if t: print(run_scan("fuzzer", target=t))
+        elif choice == "34":
+            t = _ask_target()
+            if t: print(run_scan("tech", target=t))
+        elif choice == "35":
+            t = _ask_target()
+            if t: print(run_scan("rank", target=t))
+        elif choice == "36":
+            t = _ask_target()
+            if t: print(run_scan("gf", target=t))
 
         # ── Utility ─────────────────────────────────────────────────────────
         elif choice == "40":
@@ -479,6 +517,12 @@ def interactive_menu():
             _run_scoper()
         elif choice == "42":
             _run_fullchain()
+        elif choice == "43":
+            try:
+                from scanners.gate import run_interactive
+                run_interactive()
+            except Exception as e:
+                print(f"  {_c(C.R, '[!]')} Gate error: {e}")
 
         # ── Meta / Navigation ───────────────────────────────────────────────
         elif choice == "h":
@@ -864,6 +908,11 @@ def main():
         "waf": "waf", "wafw00f": "waf", "firewall": "waf",
         "jsanalysis": "jsanalysis", "js": "jsanalysis", "javascript": "jsanalysis",
         "fuzzer": "fuzzer", "fuzz": "fuzzer", "dirscan": "fuzzer", "directory": "fuzzer",
+        "pipeline": "pipeline", "autopilot": "pipeline", "full-pipeline": "pipeline",
+        "techfingerprint": "techfingerprint", "tech": "techfingerprint", "fingerprint": "techfingerprint",
+        "gfpatterns": "gfpatterns", "gf": "gfpatterns", "patterns": "gfpatterns",
+        "gate": "gate", "validate": "gate", "triage": "gate",
+        "attackrank": "attackrank", "rank": "attackrank", "surface": "attackrank",
     }
     scan = SCAN_ALIASES.get(scan)
     if not scan:
