@@ -237,19 +237,21 @@ def interactive_menu():
             print("[!] Pilihan tidak valid.")
 
 
-def light_scan(full: bool = False):
+def light_scan():
     t = _normalize_target(input("Target (example.com): ").strip())
     if not t:
         return
     spd = input("Speed [low/standard/fast] (default standard): ").strip().lower() or "standard"
+    full = input("Run full inline scanner chain after? (y/N): ").strip().lower() == "y"
     run_scan("lts", target=t, speed=spd, full=full)
 
 
-def prompt_scan(kind: str, full: bool = False):
+def prompt_scan(kind: str):
     t = _normalize_target(input("Target (example.com): ").strip())
     if not t:
         return
     spd = input("Speed [low/standard/fast] (default standard): ").strip().lower() or "standard"
+    full = input("Run full inline scanner chain after? (y/N): ").strip().lower() == "y"
     scan = "dks" if kind == "dark" else "dps"
     run_scan(scan, target=t, speed=spd, full=full)
 
