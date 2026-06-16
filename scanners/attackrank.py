@@ -97,7 +97,7 @@ def _get_live_hosts(domain: str, sub_file: str) -> list[str]:
     try:
         proc = subprocess.run(
             [httpx_bin, "-l", sub_file, "-silent", "-title", "-status-code"],
-            capture_output=True, text=True, timeout=180,
+            capture_output=True, encoding="utf-8", errors="replace", timeout=180,
         )
         hosts = []
         for line in proc.stdout.splitlines():
@@ -135,7 +135,7 @@ def run(domain: str) -> dict:
             try:
                 proc = subprocess.run(
                     [subfinder, "-d", domain, "-silent"],
-                    capture_output=True, text=True, timeout=60,
+                    capture_output=True, encoding="utf-8", errors="replace", timeout=60,
                 )
                 hosts = [l.strip() for l in proc.stdout.splitlines() if l.strip()]
             except Exception:

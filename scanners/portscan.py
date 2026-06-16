@@ -91,7 +91,7 @@ def run(domain: str, ports: str = "top30") -> dict:
         else:
             cmd.extend(["-p", ports])
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=120)
             out_path = f"_matthunder_ports_{scan_id}.txt"
             if os.path.exists(out_path):
                 with open(out_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -119,7 +119,7 @@ def run(domain: str, ports: str = "top30") -> dict:
             log(con, scan_id, "Running nmap...")
             cmd = [nmap, "-sT", "-T4", "--top-ports", "30", "-oG", f"_matthunder_ports_{scan_id}.txt", domain]
             try:
-                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=120)
                 for line in (proc.stdout + proc.stderr).splitlines():
                     if "/open/" in line:
                         parts = line.split()

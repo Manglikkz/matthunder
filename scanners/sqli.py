@@ -121,7 +121,7 @@ def run(domain: str, max_pages: int = 30) -> dict:
                 "--disable-coloring", "--no-logging",
             ]
             try:
-                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+                proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=600)
                 output = proc.stdout + proc.stderr
                 if "is vulnerable" in output or "sqlmap identified" in output:
                     for line in output.splitlines():

@@ -822,7 +822,7 @@ def main():
         prog="matthunder",
         description="matthunder CLI — recon automation with optional AI parser (BYOK)",
     )
-    p.add_argument("scan", nargs="?", help="light | dark | deep | sqli | lfi | crlf | openredirect | xss | ssti | cors | portscan | waf | jsanalysis | fuzzer | takeover | sensitive | blh | tpa | cred | apirecon | params")
+    p.add_argument("scan", nargs="?", help="pipeline | light | dark | deep | sqli | lfi | crlf | openredirect | xss | ssti | cors | portscan | waf | jsanalysis | fuzzer | tech | rank | gf | gate | takeover | sensitive | blh | tpa | cred | apirecon | params")
     p.add_argument("target", nargs="?", help="Target domain")
     p.add_argument("speed", nargs="?", default="standard", help="low | standard | fast (or 1/2/3)")
     p.add_argument("-l", "--list", help="Subdomain list file (for takeover mass)")

@@ -119,7 +119,7 @@ def run(domain: str, wordlist: str = None) -> dict:
             "-s", "-timeout", "10",
         ]
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=300)
             if os.path.exists(out_path):
                 import json
                 with open(out_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -160,7 +160,7 @@ def run(domain: str, wordlist: str = None) -> dict:
             if wordlist:
                 cmd.extend(["-w", wordlist])
             try:
-                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=300)
                 if os.path.exists(out_path):
                     with open(out_path, "r", encoding="utf-8", errors="ignore") as f:
                         for line in f:
@@ -193,7 +193,7 @@ def run(domain: str, wordlist: str = None) -> dict:
                     "-w", wl, "-q", "-t", "20",
                 ]
                 try:
-                    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+                    proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=300)
                     for line in (proc.stdout + proc.stderr).splitlines():
                         if "(Status:" in line:
                             parts = line.split()

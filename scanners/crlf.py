@@ -110,7 +110,7 @@ def run(domain: str, max_pages: int = 20) -> dict:
         log(con, scan_id, "Running crlfuzz...")
         cmd = [crlfuzz, "-l", url_file, "-s", "-x", "-o", f"_matthunder_crlf_{scan_id}_out.txt"]
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=300)
             out_path = f"_matthunder_crlf_{scan_id}_out.txt"
             if os.path.exists(out_path):
                 with open(out_path, "r", encoding="utf-8", errors="ignore") as f:

@@ -37,7 +37,7 @@ def _resolve(name: str) -> Optional[str]:
 
 def _run(cmd: list[str], timeout: int = 300) -> tuple[int, str, str]:
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=timeout)
         return proc.returncode, proc.stdout, proc.stderr
     except subprocess.TimeoutExpired:
         return -1, "", "timeout"

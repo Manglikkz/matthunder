@@ -1372,7 +1372,7 @@ def nuclei_without_parameter(target, input_file, output_file, user_agent, scan_a
         def nuclei_basic_scan():
             return subprocess.Popen([
                 resolve_tool("nuclei"), "-l", input_file, "-nh", "-s", "low,medium,high,critical", "-tags", "misconfiguration,exposure,default-login,panel,cves,tech,cms,files,dns,takeover,ssl,token,fuzz,backup,git,iot,xss", "-ept", "ssl", "-timeout", "5", "-retries", "1", *scan_args, "-o", output_file
-            ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+            ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", bufsize=1)
         run_with_animation("Nuclei (Basic scan)", nuclei_basic_scan)
     except subprocess.CalledProcessError as e:
         print("[!] Failed to run Nuclei (Basic Scan)")
@@ -1389,7 +1389,7 @@ def nuclei_js_exposure(target, input_file, output_file, user_agent, scan_args):
         def nuclei_js_file():
             return subprocess.Popen([
                 resolve_tool("nuclei"), "-l", input_file, "-s", "low,medium,high,critical", "-nh", "-tags", "js,secrets,exposed-credentials", "-timeout", "5", "-retries", "1", *scan_args, "-o", output_file
-            ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+            ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", bufsize=1)
         run_with_animation("Running Nuclei (JS File)", nuclei_js_file)
     except subprocess.CalledProcessError as e:
             print("[!] Failed to run Nuclei (JS File)")
@@ -1406,7 +1406,7 @@ def nuclei_param_dast(target, input_file, output_file, user_agent, scan_args):
         def nuclei_dast_mode():
             return subprocess.Popen([
                 resolve_tool("nuclei"), "-l", input_file, "-nh", "-dast", "-fa", "high", "-s", "low,medium,high,critical", "-ept", "ssl", "-timeout", "5", "-retries", "1", *scan_args, "-o", output_file
-            ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+            ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", bufsize=1)
         run_with_animation("Nuclei (DAST MODE)", nuclei_dast_mode)
     except subprocess.CalledProcessError as e:
             print("[!] Failed to run Nuclei (DAST Mode)")
@@ -1428,7 +1428,7 @@ def nuclei_takeover(subdomain_file, output_path_takeover, target):
         def nuclei_takeover_scan():
             return subprocess.Popen(
                 cmd,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", bufsize=1
             )
         run_with_animation("Nuclei (Takeover Wildcard)", nuclei_takeover_scan)
     except subprocess.CalledProcessError as e:
@@ -1465,7 +1465,7 @@ def takeover_mass_file(file_path, output_name=None):
     def run_nuc_takeover():
         return subprocess.Popen(
             cmd,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", bufsize=1
         )
 
     run_with_animation(f"Nuclei (Takeover Mass - {output_name})", run_nuc_takeover)
@@ -1494,7 +1494,7 @@ def takeover_single(target):
     def run_nuc_takeover():
         return subprocess.Popen(
             cmd,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", bufsize=1
         )
 
     run_with_animation(f"Nuclei (Takeover Single - {target})", run_nuc_takeover)
@@ -1548,7 +1548,7 @@ def check_takeover(mode):
     def run_nuc_takeover():
         return subprocess.Popen(
             cmd,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf-8", errors="replace", bufsize=1
         )
     run_with_animation(f"Nuclei {label}", run_nuc_takeover)
     send_telegram_report(output_path, label)    

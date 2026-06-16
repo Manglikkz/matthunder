@@ -100,7 +100,7 @@ def run(domain: str, max_pages: int = 50) -> dict:
     gau = resolve_tool("gau")
     if gau:
         try:
-            proc = subprocess.run([gau, "--subs", domain], capture_output=True, text=True, timeout=60)
+            proc = subprocess.run([gau, "--subs", domain], capture_output=True, encoding="utf-8", errors="replace", timeout=60)
             for line in proc.stdout.splitlines():
                 url = line.strip()
                 if url:

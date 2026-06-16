@@ -107,7 +107,7 @@ def run(domain: str) -> dict:
         log(con, scan_id, "Running wafw00f...")
         cmd = [wafw00f, f"https://{domain}", "-o", f"_matthunder_waf_{scan_id}.txt", "-f", "json"]
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=60)
             out_path = f"_matthunder_waf_{scan_id}.txt"
             if os.path.exists(out_path):
                 import json

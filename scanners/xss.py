@@ -63,7 +63,7 @@ def run(domain: str, max_pages: int = 20) -> dict:
            "--format", "json", "-o", f"_matthunder_xss_{scan_id}_out.json"]
     log(con, scan_id, f"Running dalfox...")
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+        proc = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=900)
     except subprocess.TimeoutExpired:
         proc = None
         log(con, scan_id, "dalfox timed out")

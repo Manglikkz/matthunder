@@ -48,8 +48,11 @@ def _find_bin(name):
 
 def _run_cmd(cmd, timeout=120, label=""):
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-        return proc.stdout, proc.stderr, proc.returncode
+        proc = subprocess.run(
+            cmd, capture_output=True, timeout=timeout,
+            encoding="utf-8", errors="replace",
+        )
+        return proc.stdout or "", proc.stderr or "", proc.returncode
     except subprocess.TimeoutExpired:
         _log("!", f"{label}: timed out ({timeout}s)", Y)
         return "", "timeout", -1
