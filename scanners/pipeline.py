@@ -532,12 +532,15 @@ def phase5(domain, urls):
 
     vulns = [
         ("sqli",         "SQL Injection"),
-        ("xss",          "XSS (dalfox)"),
+        ("xss",          "XSS (dalfox+manual)"),
         ("lfi",          "LFI / Path Traversal"),
         ("cors",         "CORS Misconfig"),
         ("ssti",         "SSTI Probe"),
         ("crlf",         "CRLF Injection"),
         ("openredirect", "Open Redirect"),
+        ("ssrf",         "SSRF Probe"),
+        ("hostheader",   "Host Header Injection"),
+        ("graphql",      "GraphQL Introspection"),
     ]
 
     total = 0

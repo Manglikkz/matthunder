@@ -11,7 +11,7 @@ except ImportError:
 
 
 ALLOWED_SPEEDS = {"low", "standard", "fast"}
-ALLOWED_SCANS = {"lts", "dks", "dps", "tov", "sens", "blh", "thirdparty", "tpa", "cred", "apirecon", "params", "ssti", "cors", "xss"}
+ALLOWED_SCANS = {"lts", "dks", "dps", "tov", "sens", "blh", "thirdparty", "tpa", "cred", "apirecon", "params", "ssti", "cors", "xss", "sqli", "lfi", "crlf", "openredirect", "ssrf", "hostheader", "graphql", "gql", "host"}
 
 PROVIDERS = {
     "openai": {
@@ -106,6 +106,13 @@ Scan modes (use the code):
 - ssti     = Server-Side Template Injection probe
 - cors     = CORS misconfiguration probe
 - xss      = Reflected/DOM XSS (dalfox wrapper)
+- sqli     = SQL Injection (sqlmap wrapper)
+- lfi      = Local File Inclusion / Path Traversal
+- crlf     = CRLF Injection (header injection)
+- openredirect = Open Redirect
+- ssrf     = Server-Side Request Forgery (internal + OOB)
+- hostheader = Host Header Injection (poisoning + cache)
+- graphql  = GraphQL Introspection & Security
 
 Speed: low | standard | fast
 
@@ -230,6 +237,24 @@ def heuristic_parse(query: str) -> Optional[dict]:
         ("cors", "cross-origin"),
         ("xss", "xss"),
         ("xss", "cross site scripting"),
+        ("sqli", "sql injection"),
+        ("sqli", "sqli"),
+        ("lfi", "local file inclusion"),
+        ("lfi", "lfi"),
+        ("lfi", "path traversal"),
+        ("crlf", "crlf"),
+        ("crlf", "header injection"),
+        ("openredirect", "open redirect"),
+        ("openredirect", "redirect"),
+        ("ssrf", "ssrf"),
+        ("ssrf", "server-side request"),
+        ("ssrf", "server side request"),
+        ("hostheader", "host header"),
+        ("hostheader", "host injection"),
+        ("hostheader", "cache poison"),
+        ("hostheader", "password reset poison"),
+        ("graphql", "graphql"),
+        ("graphql", "introspection"),
     ]:
         if kw in q:
             scan = code

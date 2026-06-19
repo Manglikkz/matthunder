@@ -14,7 +14,7 @@ import httpx
 
 from . import SCANNER_REGISTRY
 from .common import (
-    DEFAULT_TIMEOUT, USER_AGENT, canonical_url, crawl_domain, dedupe_preserve_order,
+    DEFAULT_TIMEOUT, USER_AGENT, canonical_url, crawl_domain,
     extract_anchors, fetch, finish_scan, host_in_scope, log, normalize_domain, open_db,
     utc_now_iso,
 )
@@ -156,11 +156,6 @@ def run(domain: str, platforms: list[str], max_pages: int = 30) -> dict:
                 "source_url": page_url,
                 "anchor": a["anchor"],
             })
-    found = [
-        f for f in dedupe_preserve_order(
-            (f["target_url"] for f in found)
-        ) and False
-    ] if False else found
     seen = set()
     unique = []
     for f in found:

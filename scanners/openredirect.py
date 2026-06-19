@@ -27,10 +27,20 @@ REDIRECT_PAYLOADS = [
     "/\\evil.com",
     "https://evil.com@{}".format,
     "https://{}@evil.com".format,
-    "javascript:alert(1)",
     "https://evil.com#{}".format,
     "/%2f/evil.com",
     "///evil.com",
+    # Protocol-relative
+    "//evil.com",
+    # Backslash tricks
+    "https://evil.com\\@target.com",
+    # Tab/newline injection
+    "https://evil.com\t.target.com",
+    "https://evil.com%09.target.com",
+    "https://evil.com%0a.target.com",
+    # Double URL encoding
+    "https:%2f%2fevil.com",
+    "https%3a%2f%2fevil.com",
 ]
 
 PARAM_NAMES = [

@@ -28,6 +28,12 @@ PROBE_ORIGINS = [
     "https://attacker.io",
     "null",
     "https://sub.evil.com",
+    "http://evil.com",
+    "https://target.com.evil.com",
+    "https://evil.com%60.target.com",
+    "https://evil%0a.com",
+    "https://evil.com%0d%0a.origin",
+    "https://target.com%60.evil.com",
 ]
 
 
@@ -42,6 +48,10 @@ def _classify(acao: str, acac: str, origin_sent: str, vary_origin: str = "") -> 
         if acac_l == "true":
             return "wildcard_with_credentials"
         return "wildcard"
+    if acao_l == "null" and origin_l == "null":
+        if acac_l == "true":
+            return "null_with_credentials"
+        return "null_origin"
     if acao_l.lower() == origin_l:
         if acac_l == "true":
             return "reflected_with_credentials"
@@ -49,10 +59,6 @@ def _classify(acao: str, acac: str, origin_sent: str, vary_origin: str = "") -> 
         if vary_l and "origin" in vary_l:
             return "reflected_dynamic"
         return "reflected"
-    if acao_l == "null" and origin_l == "null":
-        if acac_l == "true":
-            return "null_with_credentials"
-        return "null_origin"
     # Subdomain regex bypass: check if ACAO matches a wildcard pattern for the origin
     # e.g., ACAO=*.example.com, origin=https://sub.example.com
     if origin_l.startswith("https://") or origin_l.startswith("http://"):
@@ -65,6 +71,17 @@ def _classify(acao: str, acac: str, origin_sent: str, vary_origin: str = "") -> 
                 if acac_l == "true":
                     return "regex_bypass_with_credentials"
                 return "regex_bypass"
+        # Domain confusion: evil.com.target.com accepted as same-origin
+        if origin_host.endswith("." + acao_host):
+            if acac_l == "true":
+                return "domain_confusion_with_credentials"
+            return "domain_confusion"
+        # Protocol mismatch: http:// accepted when https:// expected
+        if acac_l == "true" and acao_l:
+            acao_no_proto = acao_l.replace("https://", "http://")
+            origin_no_proto = origin_l.replace("https://", "http://")
+            if acao_no_proto == origin_no_proto and acao_l != origin_l:
+                return "protocol_mismatch_with_credentials"
     return "ok"
 
 
@@ -121,7 +138,8 @@ def run(domain: str, max_pages: int = 30) -> dict:
                 verdict = _classify(acao, acac, origin, vary)
                 if verdict in ("reflected_with_credentials", "null_with_credentials",
                                "wildcard_with_credentials", "regex_bypass_with_credentials",
-                               "reflected_dynamic", "null_origin", "regex_bypass"):
+                               "domain_confusion_with_credentials", "protocol_mismatch_with_credentials",
+                               "reflected_dynamic", "null_origin", "regex_bypass", "domain_confusion"):
                     findings.append({
                         "url": page_url,
                         "origin": origin,
@@ -144,7 +162,8 @@ def run(domain: str, max_pages: int = 30) -> dict:
                         pre_verdict = _classify(pre_acao, pre_acac, origin, pre_vary)
                         if pre_verdict in ("reflected_with_credentials", "null_with_credentials",
                                             "wildcard_with_credentials", "regex_bypass_with_credentials",
-                                            "reflected_dynamic", "null_origin", "regex_bypass"):
+                                            "domain_confusion_with_credentials", "protocol_mismatch_with_credentials",
+                                            "reflected_dynamic", "null_origin", "regex_bypass", "domain_confusion"):
                             findings.append({
                                 "url": page_url,
                                 "origin": origin,

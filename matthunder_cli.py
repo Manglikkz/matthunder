@@ -210,11 +210,14 @@ FEATURES = {
     # Vuln scanning
     "12": ("ssti",        "SSTI Probe",           "Test for Server-Side Template Injection"),
     "13": ("cors",        "CORS Misconfig",       "Check for CORS origin-reflection bugs"),
-    "14": ("xss",         "XSS Scan",             "Reflected/DOM XSS detection with dalfox"),
+    "14": ("xss",         "XSS Scan",             "Reflected/DOM XSS detection (dalfox + manual)"),
     "15": ("sqli",        "SQL Injection",        "Error-based SQLi probe + sqlmap wrapper"),
     "16": ("lfi",         "LFI / Path Traversal", "Local File Inclusion payload fuzzing"),
     "17": ("crlf",        "CRLF Injection",       "Header injection via CRLF sequences"),
     "18": ("openredirect", "Open Redirect",       "Redirect parameter fuzzing (URL/header/JS)"),
+    "19": ("ssrf",        "SSRF Probe",           "Server-Side Request Forgery (internal + OOB)"),
+    "1a": ("hostheader",  "Host Header Inject",   "Password reset poisoning + cache poisoning"),
+    "1b": ("graphql",     "GraphQL Introspection", "Schema leak + playground + weak auth"),
     # Discovery
     "20": ("takeover",    "Subdomain Takeover",   "Check for dangling CNAME / unclaimed services"),
     "21": ("sensitive",   "Sensitive Data",        "Find exposed .env, .sql, .bak, .config files"),
@@ -389,7 +392,8 @@ def run_scan(scan: str, target: str = None, speed: str = "standard",
         return f"  {_c(C.G, '[OK]')} Acunetix {action} selesai"
 
     if scan in ("blh", "bac", "cred", "apirecon", "params", "ssti", "cors", "xss",
-                "sqli", "lfi", "crlf", "openredirect", "portscan", "waf", "jsanalysis", "fuzzer",
+                "sqli", "lfi", "crlf", "openredirect", "ssrf", "hostheader", "host", "graphql", "gql",
+                "portscan", "waf", "jsanalysis", "fuzzer",
                 "pipeline", "techfingerprint", "tech", "gfpatterns", "gf", "gate", "validate",
                 "attackrank", "rank"):
         if not target:
@@ -403,9 +407,12 @@ def run_scan(scan: str, target: str = None, speed: str = "standard",
             "blh": "Broken Link Hunter", "tpa": "3rd Party Assets",
             "cred": "Credential URLs", "apirecon": "API Endpoint Recon",
             "params": "Hidden Parameters", "ssti": "SSTI Probe",
-            "cors": "CORS Misconfiguration", "xss": "XSS Scan (dalfox)",
+            "cors": "CORS Misconfiguration", "xss": "XSS Scan (dalfox+manual)",
             "sqli": "SQL Injection", "lfi": "LFI / Path Traversal",
             "crlf": "CRLF Injection", "openredirect": "Open Redirect",
+            "ssrf": "SSRF Probe", "hostheader": "Host Header Injection",
+            "host": "Host Header Injection", "graphql": "GraphQL Introspection",
+            "gql": "GraphQL Introspection",
             "portscan": "Port Scan", "waf": "WAF Detection",
             "jsanalysis": "JS Analysis", "fuzzer": "Dir/Path Fuzzer",
             "pipeline": "Full Pipeline", "techfingerprint": "Tech Fingerprint",
@@ -486,6 +493,15 @@ def interactive_menu():
         elif choice == "18":
             t = _ask_target()
             if t: print(run_scan("openredirect", target=t))
+        elif choice == "19":
+            t = _ask_target()
+            if t: print(run_scan("ssrf", target=t))
+        elif choice == "1a":
+            t = _ask_target()
+            if t: print(run_scan("hostheader", target=t))
+        elif choice == "1b":
+            t = _ask_target()
+            if t: print(run_scan("graphql", target=t))
 
         # ── Discovery ───────────────────────────────────────────────────────
         elif choice == "20":
