@@ -1,5 +1,7 @@
 import asyncio
+import argparse
 import ipaddress
+import json
 import logging
 import os
 import re
@@ -33,8 +35,121 @@ try:
 except Exception:
     lazy_config = None
 
-OWNER_ID = int(os.getenv("MATTHUNDER_OWNER_ID") or getattr(lazy_config, "OWNER_ID", getattr(lazy_config, "CHAT_ID", "0")) or "0")
-BOT_TOKEN = (os.getenv("MATTHUNDER_BOT_TOKEN") or getattr(lazy_config, "BOT_TOKEN", "") or "").strip()
+# ── Multi-account: --bot-dir support ──────────────────────────────────
+# Parse --bot-dir early before anything else uses the config.
+_bot_arg_parser = argparse.ArgumentParser(add_help=False)
+_bot_arg_parser.add_argument("--bot-dir", default=None,
+    help="Path to a per-bot directory containing config.json + state/ + logs/")
+_bot_dir_args, _remaining_argv = _bot_arg_parser.parse_known_args()
+BOT_DIR = _bot_dir_args.bot_dir
+sys.argv = [sys.argv[0]] + _remaining_argv  # Restore argv for later parsers
+
+if BOT_DIR:
+    BOT_DIR = Path(BOT_DIR).resolve()
+    BOT_CONFIG = BOT_DIR / "config.json"
+    if BOT_CONFIG.exists():
+        try:
+            with open(BOT_CONFIG, "r", encoding="utf-8") as _f:
+                _cfg = json.load(_f)
+        except Exception:
+            _cfg = {}
+    else:
+        _cfg = {}
+
+    # Redirect log, report, scan-output paths into the bot dir
+    LOG_DIR = BOT_DIR / "logs"
+    REPORT_DIR = BOT_DIR / "reports"
+    DB_PATH = str(BOT_DIR / "matthunder_scans.db")
+    _state_dir = BOT_DIR / "state"
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    _state_dir.mkdir(parents=True, exist_ok=True)
+
+    # Read token & owner from config.json, then fall back to env / config.py
+    _bot_token = (_cfg.get("token") or "").strip()
+    _bot_owner = str(_cfg.get("owner_id") or _cfg.get("chat_id") or "0").strip()
+
+    BOT_TOKEN = _bot_token or (os.getenv("MATTHUNDER_BOT_TOKEN") or getattr(lazy_config, "BOT_TOKEN", "") or "").strip()
+    OWNER_ID = int(_bot_owner or os.getenv("MATTHUNDER_OWNER_ID") or getattr(lazy_config, "OWNER_ID",
+                           getattr(lazy_config, "CHAT_ID", "0")) or "0")
+
+    # Tell matthunder.py to write outputs inside this bot dir
+    os.environ["MATTHUNDER_BOT_DIR"] = str(BOT_DIR)
+
+    # ── Per-bot lock ────────────────────────────────────────────────
+    _lock_file = _state_dir / "bot.lock"
+    _heartbeat_file = _state_dir / "bot.heartbeat"
+
+    def _pid_really_dead(pid):
+        """Return True iff PID is definitely not alive.
+
+        Uses taskkill /PID (without /F). If the PID exists, taskkill returns
+        0 (and we then fully kill it). If the PID doesn't exist, taskkill
+        returns 128 immediately — no hanging on zombie PIDs.
+        """
+        if not pid:
+            return True
+        try:
+            _rc = subprocess.run(
+                ["taskkill", "/PID", str(pid)],
+                capture_output=True, timeout=3,
+            )
+            if _rc.returncode == 0:
+                # PID was alive — fully kill it so startup is clean
+                subprocess.run(["taskkill", "/F", "/PID", str(pid)],
+                               capture_output=True, timeout=3)
+                return False
+            return True
+        except Exception:
+            return True
+
+    def _check_lock():
+        """Single-instance guard: exit if another bot with same --bot-dir is alive."""
+        if _lock_file.exists():
+            try:
+                _old = json.loads(_lock_file.read_text(encoding="utf-8") or "{}")
+            except Exception:
+                _old = {}
+            _old_pid = _old.get("pid")
+            if not _pid_really_dead(_old_pid):
+                print(f"[bot] --bot-dir {BOT_DIR} already running as PID {_old_pid}. Exiting.", flush=True)
+                sys.exit(0)
+            # Stale lock
+            _lock_file.unlink(missing_ok=True)
+        _lock_file.write_text(
+            json.dumps({"pid": os.getpid(), "started_at": time.time()}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    def _clear_lock():
+        try:
+            _lock_file.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+    def _write_heartbeat():
+        try:
+            _heartbeat_file.write_text(str(int(time.time())), encoding="utf-8")
+        except Exception:
+            pass
+
+    # Override the global heartbeat to use per-bot file
+    HEARTBEAT_PATH = _heartbeat_file
+
+    # Replace global MATTHUNDER reference so start_deep_scan runs with bot_dir as cwd
+    MATTHUNDER = ROOT / "matthunder.py"
+
+    _check_lock()
+    import atexit
+    atexit.register(_clear_lock)
+
+else:
+    # ── Legacy single-instance mode (no --bot-dir) ─────────────────
+    BOT_CONFIG = None
+    OWNER_ID = int(os.getenv("MATTHUNDER_OWNER_ID") or getattr(lazy_config, "OWNER_ID",
+                           getattr(lazy_config, "CHAT_ID", "0")) or "0")
+    BOT_TOKEN = (os.getenv("MATTHUNDER_BOT_TOKEN") or getattr(lazy_config, "BOT_TOKEN", "") or "").strip()
+    HEARTBEAT_PATH = Path(os.getenv("TEMP", "/tmp")) / "matthunder_bot.heartbeat"
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -876,7 +991,7 @@ async def app_scan_do_mat(query, context, target: str, speed: str):
         sub_env["MATTHUNDER_SCAN_LOG"] = str(log_path)
         proc = subprocess.Popen(
             cmd, stdout=log_f, stderr=subprocess.STDOUT,
-            cwd=str(ROOT), env=sub_env,
+            cwd=str(BOT_DIR or ROOT), env=sub_env,
         )
     except Exception as e:
         await _send(query, f"❌ Gagal start scan: `{_esc(str(e)[:200])}`", back_to_main_button())
@@ -1463,7 +1578,7 @@ async def app_ai_run(query, context, cmd: list):
             *full_cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
-            cwd=str(ROOT),
+            cwd=str(BOT_DIR or ROOT),
         )
         try:
             stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=180)
@@ -2540,7 +2655,7 @@ async def start_deep_scan(message_obj, context: ContextTypes.DEFAULT_TYPE, targe
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
-            cwd=str(ROOT),
+            cwd=str(BOT_DIR or ROOT),
             stdout=log_file,
             stderr=asyncio.subprocess.STDOUT,
             env=env,
@@ -2578,9 +2693,17 @@ async def deep(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await start_deep_scan(update.message, context, target, speed)
 
 
-HEARTBEAT_PATH = Path(os.getenv("TEMP", "/tmp")) / "matthunder_bot.heartbeat"
-SCAN_STATE_PATH = ROOT / "bot_logs" / "active_scan.json"
-SCAN_STATE_TMP = ROOT / "bot_logs" / "active_scan.json.tmp"
+# SCAN_STATE_PATH is re-defined at the end of the --bot-dir logic above;
+# here we set the legacy default so the variable always exists.
+if not BOT_DIR:
+    HEARTBEAT_PATH = Path(os.getenv("TEMP", "/tmp")) / "matthunder_bot.heartbeat"
+    SCAN_STATE_PATH = ROOT / "bot_logs" / "active_scan.json"
+    SCAN_STATE_TMP = ROOT / "bot_logs" / "active_scan.json.tmp"
+else:
+    # In --bot-dir mode these were already set inside the if BOT_DIR block,
+    # but we need to export them as module-level names for the functions below.
+    SCAN_STATE_PATH = BOT_DIR / "state" / "active_scan.json"
+    SCAN_STATE_TMP = BOT_DIR / "state" / "active_scan.json.tmp"
 
 
 def _write_heartbeat():
@@ -3872,6 +3995,15 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, setup_text_handler), group=-2)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_plain_target), group=-1)
     app.add_error_handler(error_handler)
+
+    # Start periodic heartbeat so botman.py can detect liveness.
+    # Only meaningful in --bot-dir mode; harmless in legacy mode.
+    import threading as _thr
+    def _bg_heartbeat():
+        _write_heartbeat()
+        _thr.Timer(10, _bg_heartbeat).start()
+    _bg_heartbeat()
+
     print("matthunder Deep Telegram Bot running...")
     app.run_polling(
         drop_pending_updates=True,
