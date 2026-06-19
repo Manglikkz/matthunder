@@ -218,6 +218,8 @@ FEATURES = {
     "19": ("ssrf",        "SSRF Probe",           "Server-Side Request Forgery (internal + OOB)"),
     "1a": ("hostheader",  "Host Header Inject",   "Password reset poisoning + cache poisoning"),
     "1b": ("graphql",     "GraphQL Introspection", "Schema leak + playground + weak auth"),
+    "1c": ("sourcedisc",  "Source Code Disclosure", ".git/.svn/backup/sourcemap leak"),
+    "1d": ("jwt",         "JWT Analyzer",          "Algorithm confusion + weak secret + none alg"),
     # Discovery
     "20": ("takeover",    "Subdomain Takeover",   "Check for dangling CNAME / unclaimed services"),
     "21": ("sensitive",   "Sensitive Data",        "Find exposed .env, .sql, .bak, .config files"),
@@ -393,6 +395,7 @@ def run_scan(scan: str, target: str = None, speed: str = "standard",
 
     if scan in ("blh", "bac", "cred", "apirecon", "params", "ssti", "cors", "xss",
                 "sqli", "lfi", "crlf", "openredirect", "ssrf", "hostheader", "host", "graphql", "gql",
+                "sourcedisc", "source", "jwt",
                 "portscan", "waf", "jsanalysis", "fuzzer",
                 "pipeline", "techfingerprint", "tech", "gfpatterns", "gf", "gate", "validate",
                 "attackrank", "rank"):
@@ -502,6 +505,12 @@ def interactive_menu():
         elif choice == "1b":
             t = _ask_target()
             if t: print(run_scan("graphql", target=t))
+        elif choice == "1c":
+            t = _ask_target()
+            if t: print(run_scan("sourcedisc", target=t))
+        elif choice == "1d":
+            t = _ask_target()
+            if t: print(run_scan("jwt", target=t))
 
         # ── Discovery ───────────────────────────────────────────────────────
         elif choice == "20":

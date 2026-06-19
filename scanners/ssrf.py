@@ -8,6 +8,7 @@ Usage:
   python matthunder_cli.py ssrf example.com
 """
 
+import os
 import re
 import time
 import uuid

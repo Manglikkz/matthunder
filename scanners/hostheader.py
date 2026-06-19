@@ -11,6 +11,7 @@ Usage:
   python matthunder_cli.py hostheader example.com
 """
 
+import os
 import re
 import time
 from typing import Optional

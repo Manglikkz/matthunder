@@ -36,5 +36,5 @@ from . import (
     blh, thirdparty, cred, apirecon, ssti, cors, xss,
     sqli, lfi, crlf, openredirect, portscan, waf, jsanalysis, fuzzer,
     pipeline, techfingerprint, gfpatterns, gate, attackrank, acunetix,
-    ssrf, hostheader, graphql,
+    ssrf, hostheader, graphql, sourcedisc, jwt,
 )  # noqa: E402,F401
